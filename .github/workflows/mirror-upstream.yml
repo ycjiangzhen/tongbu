@@ -1,0 +1,18 @@
+name: 镜像上游到rdpwrap.ini仓库
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # 每6小时一次，UTC 0/6/12/18点，即北京时间 8/14/20/2点
+  workflow_dispatch:         # 支持手动点击立即同步
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 克隆上游sebaxakerhtc/rdpwrap.ini完整镜像
+        run: |
+          git clone --mirror https://github.com/sebaxakerhtc/rdpwrap.ini.git repo.git
+
+      - name: 推送到你的镜像仓库
+        working-directory: repo.git
+        run: |
+          git push --mirror https://x-access-token:${{ secrets.GH_PAT }}@github.com/ycjiangzhen/rdpwrap.ini.git
