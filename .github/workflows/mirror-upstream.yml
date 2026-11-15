@@ -1,7 +1,7 @@
 name: 镜像上游到rdpwrap.ini仓库
 on:
   schedule:
-    - cron: '0 */6 * * *'   # 每6小时一次，UTC 0/6/12/18点，即北京时间 8/14/20/2 点
+    - cron: '17-57/10 * * * *'   # 每10分钟一次（每小时的17/27/37/47/57分），UTC与北京时间同为整点对齐，首次为北京时间17:17
   workflow_dispatch:         # 支持手动点击立即同步
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       - name: 删除无法推送的refs/pull引用
         working-directory: repo.git
         run: |
-          git for-each-ref --format='%(refname)' refs/pull | while read -r ref; do
+          for ref in $(git for-each-ref --format='%(refname)' refs/pull); do
             git update-ref -d "$ref"
           done
 
