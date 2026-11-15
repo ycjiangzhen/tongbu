@@ -1,0 +1,33 @@
+name: 同步上游到本仓库
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # 每6小时一次：UTC 0/6/12/18 点，即北京时间 8/14/20/次日2 点
+  workflow_dispatch:         # 支持手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # 允许工作流向本仓库推送
+    steps:
+      - name: 检出本仓库（完整历史）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 拉取上游并覆盖文件（保留 .github 目录）
+        run: |
+          git remote add upstream https://github.com/sebaxakerhtc/rdpwrap.ini.git
+          git fetch upstream --prune
+          BRANCH=$(git ls-remote --symref upstream HEAD | awk '/^ref:/ {print $2}' | sed 's#refs/heads/##')
+          git checkout upstream/$BRANCH -- . ':(exclude).github'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "上游暂无更新，跳过提交"
+          else
+            git commit -m "chore: 同步上游 rdpwrap.ini 更新"
+            git push origin HEAD
+          fi
